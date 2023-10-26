@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -46,7 +47,7 @@ namespace PruebaBot.Controllers
         [HttpPost(Name = "ingreso")]
         public IActionResult Ingreso([FromBody] WeatherForecast request)
         {
-            EnviarNotificacionAlBot();
+            
 
             var response = new
             {
@@ -55,11 +56,13 @@ namespace PruebaBot.Controllers
                 resultado = ""
             };
 
+            EnviarNotificacionAlBot(response.codigo);
+
             return Ok(response);
         }
 
 
-        private async void EnviarNotificacionAlBot()
+        private async void EnviarNotificacionAlBot(string codigo)
         {
             Console.WriteLine("Si ingreso a envio de notificacion");
 
@@ -68,9 +71,11 @@ namespace PruebaBot.Controllers
 
             try
             {
+                Log.Information(mensaje + ": " + codigo);
+
                 await _botClient.SendTextMessageAsync(
                             chatId: 2074000530,
-                            text: $"📩 ¡Nuevo ingreso detectado!:\n\n",
+                            text: $"📩 ¡Nuevo ingreso detectado!:\n número de ticket: {codigo}",
                             parseMode: ParseMode.Html,
                             cancellationToken: default
                         );

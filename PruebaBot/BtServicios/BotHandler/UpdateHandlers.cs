@@ -5,6 +5,9 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Text.Json.Nodes;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace PruebaBot.BtServicios.BotHandler
 {
@@ -81,9 +84,9 @@ namespace PruebaBot.BtServicios.BotHandler
             {
                 if (message.Text is not { } messageText) return Task.CompletedTask;
 
-                if (messageText.StartsWith("/Ticket"))
+                if (messageText.StartsWith("/ticket"))
                 {
-                    // Realiza una solicitud HTTP al controlador deseado (por ejemplo, WeatherForecast)
+                    // Realiza una solicitud HTTP al controlador
                     var httpClient = new HttpClient();
                     var response = await httpClient.GetAsync("https://localhost:7265/WeatherForecast");
 
@@ -91,27 +94,52 @@ namespace PruebaBot.BtServicios.BotHandler
                     {
                         var content = await response.Content.ReadAsStringAsync();
 
-                        // Dividir el JSON en líneas usando },{ como separador y enumerarlas
-                        string[] jsonLines = content.Split(new string[] { "},{" }, StringSplitOptions.None);
-                        for (int i = 0; i < jsonLines.Length; i++)
+                        //Console.WriteLine(content);
+
+                        var weatherForecasts = JsonSerializer.Deserialize<List<WeatherFore>>(content);
+
+                        foreach (var forecast in weatherForecasts)
                         {
-                            // Agregar el número de línea y formatear en HTML
-                            jsonLines[i] = $"<b><b>{i + 1}</b></b>. {jsonLines[i]}";
+                            Console.WriteLine($"Fecha: {forecast.date}, Temperatura (°C): {forecast.temperatureC}, Resumen: {forecast.temperatureF}");
                         }
 
-                        string htmlResponse = $"<pre><code>{content}</code></pre>";
+
+                        // Dividir el JSON en líneas usando },{ como separador y enumerarlas
+                        //content.Replace("{", "").Replace("]", "");
+
+                        //Console.WriteLine(content);
+
+                        //string[] jsonLines = content.Split(new string[] { "},{" }, StringSplitOptions.None);
+                        //for (int i = 0; i < jsonLines.Length; i++)
+                        //{
+                        //    jsonLines[i] = $"<b><b>{i + 1}</b></b>. {jsonLines[i]}";
+                        //}
+
+
+                        string markdownResponse = "📅 *Pronóstico del tiempo:*\n\n";
+
+                        foreach (var forecast in weatherForecasts)
+                        {
+                            int temperatureC = Math.Abs(forecast.temperatureC);
+                            var summary = Regex.Replace(forecast.summary, @"[^\w\s]", "");
+
+                            markdownResponse += $" *Fecha:* {forecast.date:dd/MM/yyyy}\n";
+                            markdownResponse += $" *Temperatura \\(°C\\):* {temperatureC}\n";
+                            markdownResponse += $" *Resumen:* {summary}\n";
+                            markdownResponse += "\n";
+                        }
+
+                        // Elimina el último salto de línea adicional
+                        markdownResponse = markdownResponse.Trim();
 
                         // Envía la respuesta al usuario a través del chatbot
                         await botClient.SendTextMessageAsync(
                             chatId: message.Chat.Id,
-                            text: $"📩 Aquí tienes el resultado solicitado:\n\n{htmlResponse}",
-                            parseMode: ParseMode.Html,
-                            replyMarkup: new InlineKeyboardMarkup(
-                                InlineKeyboardButton.WithUrl(
-                                    text: "Check sendMessage method",
-                                    url: "https://core.telegram.org/bots/api#sendmessage")),
+                            text: markdownResponse,
+                            parseMode: ParseMode.MarkdownV2,
                             cancellationToken: default
                         );
+                        // $"📩 Aquí tienes el resultado solicitado:\n\n{markdownResponse}",
                     }
                     else
                     {
