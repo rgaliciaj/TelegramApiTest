@@ -19,7 +19,7 @@ namespace PruebaBot.BtServicios
             IConfiguration configuration,
             IServiceScopeFactory serviceScopeFactory) 
         {
-            Debug.WriteLine("INGRESAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            //Debug.WriteLine("INGRESAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             _client = client;
             _configuration = configuration;
             _serviceScopeFactory = serviceScopeFactory;

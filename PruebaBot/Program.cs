@@ -69,22 +69,21 @@ static void ConfigureServices(HostBuilderContext Context, IServiceCollection Ser
 
     botClient.SetMyCommandsAsync(new BotCommand[]
     {
-        new BotCommand(){Command = "hola", Description="Hola bienvenido, mi nombre es: " + me.FirstName},
-        new BotCommand(){Command = "ticket", Description="Debe de loggearse para poder crear un ticket."},
-        new BotCommand(){Command = "list", Description="Este es su listado de tickets pendientes: null"}
+        new BotCommand(){Command = "ticket", Description="Tickets pendientes."},
+        new BotCommand(){Command = "nuevo", Description="Creación de ticket."}
     }).GetAwaiter().GetResult();
 
     Log.Logger.Information("¡El robot de Telegram está en línea! ID del robot: {Id "+me.Id+"} ({username}), Nombre del robot: {FirstName}.", me.Id, $"@{me.Username}", me.FirstName);
     Console.WriteLine("¡El robot de Telegram está en línea! ID del robot: {Id "+me.Id+"} ({username}), Nombre del robot: {FirstName}: "+ me.Id +" @{me.Username}: "+ me.FirstName);
-    
-    var AdminUserId = Configuration.GetValue<long>("BotConfig:AdminUserId");
-    if (AdminUserId > 0)
-    {
-        botClient.SendTextMessageAsync(AdminUserId, $"¡Tu robot <a href=\"tg://user?id={me.Id}\">{me.FirstName}</a> está en línea!", (int?)Telegram.Bot.Types.Enums.ParseMode.Html);
-    }
 
-    botClient.SendTextMessageAsync(AdminUserId, "Hola bienvenido").ConfigureAwait(false);
-    Console.WriteLine(botClient.SendTextMessageAsync(AdminUserId, "hello").ConfigureAwait(true));
+    var AdminUserId = Configuration.GetValue<long>("BotConfig:AdminUserId");
+    //if (AdminUserId > 0)
+    //{
+    //    botClient.SendTextMessageAsync(2074000530, $"¡Tu robot <a href=\"tg://user?id={me.Id}\">{me.FirstName}</a> está en línea!", (int?)Telegram.Bot.Types.Enums.ParseMode.Html);
+    //}
+
+    //botClient.SendTextMessageAsync(2074000530, "Hola bienvenido").ConfigureAwait(false);
+    Console.WriteLine(botClient.SendTextMessageAsync(2074000530, "Hola bienvenido").ConfigureAwait(true));
 
     Services.AddSingleton<ITelegramBotClient>(botClient);
     Services.AddHostedService<BotService>();
